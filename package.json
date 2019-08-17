@@ -10,11 +10,24 @@
     "type": "git",
     "url": "git+https://github.com/morningshoe/Liri-Bot.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+  "javascript", 
+  "node"
+  ],
+  "author": "Alex Shoemaker",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/morningshoe/Liri-Bot/issues"
   },
-  "homepage": "https://github.com/morningshoe/Liri-Bot#readme"
+  "homepage": "https://github.com/morningshoe/Liri-Bot#readme",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "bandsintown": "^1.0.1",
+    "chalk": "^2.4.2",
+    "dotenv": "^8.0.0",
+    "inquirer": "^6.5.1",
+    "moment": "^2.24.0",
+    "node-spotify-api": "^1.1.1",
+    "omdb-client": "^2.0.0"
+  }
 }
