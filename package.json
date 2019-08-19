@@ -11,8 +11,8 @@
     "url": "git+https://github.com/morningshoe/Liri-Bot.git"
   },
   "keywords": [
-  "javascript", 
-  "node"
+    "javascript",
+    "node"
   ],
   "author": "Alex Shoemaker",
   "license": "ISC",

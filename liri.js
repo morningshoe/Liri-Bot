@@ -9,7 +9,7 @@ var inquirer = require("inquirer");
 
 var axios = require("axios");
 var bandsintown = keys.bandsInTown;
-var bandsInTown = bandsintown.id;
+var bandsInTownApi = bandsintown.id;
 
 var Spotify = require("node-spotify-api");
 var spotifyKeys = keys.spotify;
@@ -27,7 +27,7 @@ omdbAPIkey = omdbKeys.id;
 var chalk = require("chalk");
 var invertedTitle = chalk.inverse;
 var liriFound = invertedTitle("\n----------LOOK WHAT LIRI FOUND-----------\n");
-var problem = invertedTitle("\n------------HOUSTON WE HAVE A PROBLEM--------\n")
+var problem = invertedTitle("\n------------HOUSTON WE HAVE A PROBLEM-----------\n")
 
 
 //------------------ INQUIRER QUESTIONS ARRAY ---------------------
@@ -36,7 +36,7 @@ var initializingQuestions = [{
     type: "list",
     name: "programs",
     message: "Hello, which of the following would you like to search?",
-    choices: ["Spotify", "IMDB", "Bands in Town", "Surprise!"]
+    choices: ["Spotify", "IMDB", "Concerts", "Surprise!"]
 },
 {
     type: "input",
@@ -78,21 +78,21 @@ var initializingQuestions = [{
 },
 {
     type: "input",
-    name: "concertSearch",
-    message: "Which band are you interested in searching for?",
+    name: "artistSearch",
+    message: "Which artist are you interested in searching for?",
     validate: function (input) {
-        var complete = this.async();
-
+        var done = this.async();
+        
         setTimeout(function () {
             if (input === "") {
                 console.log("Please enter an artist name.")
                 return;
             }
-            complete(null, true);
+            done(null, true);
         }, 1000);
     },
     when: (answers) => {
-        return answers.programs == "Bands in Town";
+        return answers.programs == "Concerts";
     }
 }
 ]
@@ -109,43 +109,14 @@ inquirer
             case "IMDB":
                 imdbSearch(answer.movieSearch)
                 break;
-            case "Bands In Town":
-                concertSearch(answer.concertSearch)
+            case "Concerts":
+                concertSearch(answer.artistSearch)
                 break;
             case "Surprise!":
                 surprise(surprise);
                 break;
         }
-})
-
-//---------------- OMDB SEARCH --------------------
-
-var imdbSearch = (movie) => {
-    var params = 
-    {
-        apiKey: omdbAPIkey,
-        title: movie
-    }
-
-    omdb.get(params, (error, movie) => {
-        if (error) {
-            return console.error(problem + error);
-        } else if (!movie) {
-            return console.error("Uhhhhh, never heard of that movie.");
-        }
-
-        console.log(liriFound + 
-            "\nMovie Title: " + chalk.underline(movie.Title) +
-            "\nMovie Rating: " + movie.imdbRating +
-            "\nReleased In: " + movie.Year +
-            "\nRotten Tomatoes Score: " + movie.Ratings[1].Value + "/10" +
-            "\nPlot: " + movie.Plot +
-            "\nAwards Received: " + movie.Awards 
-        )
-        console.log(invertedTitle("\n----------------------\n"))
-    });
-}
-
+    })
 //------------------ SPOTIFY SEARCH ------------------
 
 var spotifySearch = (song) => {
@@ -166,28 +137,126 @@ var spotifySearch = (song) => {
                 var artistName = songs.album.artists[0].name;
                 var url = songs.album.external_urls.spotify
 
-                console.log(liriFound + 
+                console.log(liriFound +
                     chalk.bold("\nSong Title: ") + "'" + songTitle + "'" + "\n" +
-                    chalk.bold("\nArtist Name: ") + artistName +  
-                    chalk.bold("\nAlbum Title: ") + albumTitle + 
+                    chalk.bold("\nArtist Name: ") + artistName +
+                    chalk.bold("\nAlbum Title: ") + albumTitle +
                     chalk.bold("\nStill Curious?: ") + url)
 
                 console.log(invertedTitle("\n----------------------\n"))
 
-                if (++counter >= limit) 
+                if (++counter >= limit)
                     break;
             }
         }
     })
 }
 
+//---------------- OMDB SEARCH --------------------
+
+var imdbSearch = (movie) => {
+    var params =
+    {
+        apiKey: omdbAPIkey,
+        title: movie
+    }
+
+    omdb.get(params, (error, movie) => {
+        if (error) {
+            return console.error(problem + error);
+        } else if (!movie) {
+            return console.error("Uhhhhh, never heard of that movie.");
+        }
+
+        console.log(liriFound +
+            "\nMovie Title: " + chalk.underline(movie.Title) +
+            "\nMovie Rating: " + movie.imdbRating +
+            "\nReleased In: " + movie.Year +
+            "\nRotten Tomatoes Score: " + movie.Ratings[1].Value + "/10" +
+            "\nPlot: " + movie.Plot +
+            "\nAwards Received: " + movie.Awards
+        )
+        console.log(invertedTitle("\n----------------------\n"))
+    });
+}
+
+
 //-------------------- BANDS IN TOWN SEARCH --------------------
 
-// var concertSearch = (artist) => {
-//     if (artist === "") {
-//         return console.log ("Don't know that one, let's try it again!");
-//     }
+var concertSearch = (artist) => {
+    if (artist === "") {
+        return console.log("Don't know that one, let's try it again!");
+    }
 
-//     var artistName = artist = artist.replace(/['"]+/g, '').split(" ").join("+");
-//     var searchUrl = 'https://rest.bandsintown.com/artists/' + artistName + '/events?app_id=' + bandsInTown;
-// }
+    var artistName = artist.replace(/\s/g, '')
+    var searchUrl = 'https://rest.bandsintown.com/artists/' + artistName + '/events?app_id=' + bandsInTownApi;
+    axios.get(searchUrl)
+        .then((response) => {
+            concerts = response.data;
+            if (concerts.length === 0) {
+                console.log(problem);
+                console.log("\nTry a different artist!");
+            } else {
+                var counter = 0;
+                var limit = 3;
+                var resultsHeader = chalk.bold.green("\n----------LIRI FOUND THESE TOP 3 RESULTS-------------")
+                console.log(resultsHeader);
+                for (var concert of concerts) {
+                    var date = "Date: " + moment(concert.datetime).format("dddd, MMMM do YYYY h:mm:ss a");
+                    var venue = `Venue Name: ${concert.venue.name}`;
+                    var venueCity = `City: ${concert.venue.city}`;
+                    var venueRegion = `Region: ${concert.venue.region}`;
+                    var venueCountry = `Country: ${concert.venue.country}`;
+                    var act = `Artist: ${concert.lineup}`;
+
+                    console.log(
+                        chalk.underline(act) +
+                        "\n" + date +
+                        "\n" + venue +
+                        "\n" + venueCity +
+                        "\n" + venueRegion +
+                        "\n" + venueCountry
+                    );
+
+                    if (++counter >= limit)
+                        break;
+                }
+            }
+        })
+        .catch((error) => {
+            return console.error(problem + error);
+        })
+}
+
+//------------------ SURPRISE ME! ------------------------
+
+var surprise = (userSearch) => {
+    var min = 1;
+    var max = 3;
+    var random = parseInt(Math.random() * (max - min) + min);
+
+    fs.readFile('./random/random' + random + '.txt', 'utf8', (error, data) => {
+        if (error) {
+            return console.error("Oops. Looks like that information we can't search. " + error);
+        } else {
+            var fileContent = data.split(',');
+            userSearch = fileContent[1];
+            switch (fileContent[0]) {
+                case "Spotify":
+                    spotifySearch(userSearch);
+                    break;
+                case "IMDB":
+                    imdbSearch(userSearch);
+                    break;
+                case "Concerts":
+                    concertSearch(userSearch);
+                    break;
+                case "Suprise!":
+                    suprise();
+                    break;
+                default:
+                    console.log(problem);
+            }
+        }
+    });
+}
