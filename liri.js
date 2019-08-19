@@ -148,14 +148,46 @@ var imdbSearch = (movie) => {
 
 //------------------ SPOTIFY SEARCH ------------------
 
-// var spotifySearch = (song) => {
-//     spotify.search({ type: "track", query: "song" }, (error, song) => {
-//         if (error) {
-//             console.log(problem)
-//             return console.error(error)
-//         } else {
-//             var search = song.track.items
-//             var spotifyHeader = 
-//         }
-//     })
+var spotifySearch = (song) => {
+    spotify.search({ type: "track", query: song }, (error, song) => {
+        if (error) {
+            console.log(problem)
+            return console.error(error)
+        } else {
+            var search = song.tracks.items
+            var spotifyHeader = chalk.green("\n---------TOP 3 SEARCH RESULTS-----------")
+            console.log(spotifyHeader);
+            var counter = 0;
+            var limit = 3;
+
+            for (var songs of search) {
+                var songTitle = songs.name;
+                var albumTitle = songs.album.name;
+                var artistName = songs.album.artists[0].name;
+                var url = songs.album.external_urls.spotify
+
+                console.log(liriFound + 
+                    chalk.bold("\nSong Title: ") + "'" + songTitle + "'" + "\n" +
+                    chalk.bold("\nArtist Name: ") + artistName +  
+                    chalk.bold("\nAlbum Title: ") + albumTitle + 
+                    chalk.bold("\nStill Curious?: ") + url)
+
+                console.log(invertedTitle("\n----------------------\n"))
+
+                if (++counter >= limit) 
+                    break;
+            }
+        }
+    })
+}
+
+//-------------------- BANDS IN TOWN SEARCH --------------------
+
+// var concertSearch = (artist) => {
+//     if (artist === "") {
+//         return console.log ("Don't know that one, let's try it again!");
+//     }
+
+//     var artistName = artist = artist.replace(/['"]+/g, '').split(" ").join("+");
+//     var searchUrl = 'https://rest.bandsintown.com/artists/' + artistName + '/events?app_id=' + bandsInTown;
 // }
